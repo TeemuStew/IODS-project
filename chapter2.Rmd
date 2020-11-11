@@ -2,7 +2,7 @@
 
 ### The dataset
 
-We begin by reading in the learning2014 dataset and exploring it:
+Reading the dataset:
 
 ```{r}
 learning2014 <- read.csv("data/learning2014.csv")
@@ -10,12 +10,7 @@ dim(learning2014)
 str(learning2014)
 ```
 
-We see that the dataset consists of 166 observations of 7 variables. The variables
-are gender, age, attitude, exam points, and three combined variables deep, 
-stra and surf, which combine answers regarding deep, strategic and surface 
-learning, respectively.
-
-Let us plot the distributions of the variables to look at their relationships:
+Plotting variables:
 
 ```{r}
 library(GGally)
@@ -23,69 +18,30 @@ p <- ggpairs(learning2014, mapping = aes(col = gender, alpha = 0.3), lower = lis
 p
 ```
 
-Looking at the distributions of the variables first, we note that there are about
-twice as many women compared to men in the dataset and the ages are mostly concentrated
-around the early 20s. Men appear to have higher attitude scores than women on average.
-Deep learning scores are distributed quite high in general, while strategic and surface learning
-scores are more evenly distributed across the full range. Women appear to have higher 
-strategic and surface learning scores than men on average. The exam point distribution
-leans towards the top end of the range.
-
-We see that the strongest correlations are between exam points and attitude, and between surface and deep learning. A higher attitude score tends to correlate with higher exam points, 
-and a higher deep learning score tends to correlate with a lower surface learning 
-score.
-
 ### Linear regression
-
-We will now consider a linear regression model where exam points is the target variable.
-We choose attitude, strategic learning and surface learning as our three explanatory
-variables, given that they are the variables most strongly correlated with exam points:
 
 ```{r}
 model <- lm(points ~ attitude + stra + surf, data = learning2014)
 summary(model)
 ```
 
-We see that the p-value listed in the Pr(>|t|) column for the attitude variable is extremely small, thus attitude can be said to have a statistically significant relationship with the target variable, exam points. The strategic learning and surface learning variables however do not, thus we will remove the least significant one (the latter) and fit the model again:
 
 ```{r}
 model <- lm(points ~ attitude + stra, data = learning2014)
 summary(model)
 ```
 
-The statistical significance of the intercept and the attitude variable have increased,
-but the strategic learning variable is still not statistically significant enough. Therefore 
-we remove it from the model, and we're left with a model with just the attitude variable:
 
 ```{r}
 model <- lm(points ~ attitude, data = learning2014)
 summary(model)
 ```
 
-In this final model, the statistical significance of the attitude variable has increased even further, and the estimate for the attitude fit parameter is 3.5255. This means that when the attitude score goes up by 1, the expected exam points go up by about 3.5255.
-
-A Multiple R-squared value of 0.1906 means that about 19% of the variation in exam
-points is explained by the variation in attitude.
 
 ### Model validation
-
-Finally, we consider the following diagnostic plots:
 
 ```{r}
 par(mfrow = c(2,2))
 plot(model, which = c(1, 2, 5))
 ```
 
-Our model has a number of built-in assumptions. First, since it is a linear regression model, we assume that the exam points variable has a linear relationship with the attitude variable. Second, we assume that the errors of the model are 1) normally distributed, 2) not correlated, and 3) have constant variance.
-
-The QQ-plot tells us how well our fit matches the assumption of normally distributed
-errors. From the plot we see that our fit follows the dotted line quite closely, therefore 
-agreeing with the normality of errors assumption.
-
-The Residuals vs Fitted plot tells us how well our fit matches the assumption of 
-constant variance of errors. Given that the plot does not show any particular patterns, 
-our fit agrees with this assumption as well.
-
-Finally, the Residuals vs Leverage plot tells us whether a single observation has an
-unusually large impact on our model. Since no points stand out in the plot, and the
-maximum values of leverage are fairly small (< 0.05), our fit has no such issues.

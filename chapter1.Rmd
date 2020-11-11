@@ -1,8 +1,6 @@
 
 # About the project
 
-I first saw this course listed in the transferable skills course list for my doctoral program. The course looked interesting and useful, so I decided to register.
+This course looks hard, but i'm up for the challenge!
 
-As I have no previous experience in R, RStudio or GitHub, I'm looking forward to first learning to use these tools properly. Then, I expect to use the tools to do data analysis and visualization, as well as to learn more about open data and open science.
-
-My GitHub repository is at: https://github.com/sr-hel/IODS-project
+My GitHub repository: https://teemustew.github.io/IODS-project/

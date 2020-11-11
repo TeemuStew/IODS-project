@@ -1,6 +1,6 @@
 ---
-title: "IODS course project"
-author: "Sami Raatikainen"
+title: "IODS Course Project"
+author: "Teemu Mäkelä"
 output:
   html_document:
     theme: cosmo
