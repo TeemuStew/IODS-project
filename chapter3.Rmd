@@ -1,0 +1,70 @@
+---
+title: "chapter3.Rmd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Importing libraries
+```{r}
+library(dplyr); library(ggplot2)
+```
+
+Reading the dataset:
+
+```{r}
+alc <- read.csv("data/alc.csv")
+dim(alc)
+str(alc)
+```
+This data approach student achievement in secondary education of two Portuguese schools. The data attributes include student grades, demographic, social and school related features) and it was collected by using school reports and questionnaires. Two datasets are provided regarding the performance in two distinct subjects: Mathematics (mat) and Portuguese language (por). In [Cortez and Silva, 2008], the two datasets were modeled under binary/five-level classification and regression tasks. Important note: the target attribute G3 has a strong correlation with attributes G2 and G1. This occurs because G3 is the final year grade (issued at the 3rd period), while G1 and G2 correspond to the 1st and 2nd period grades. It is more difficult to predict G3 without G2 and G1, but such prediction is much more useful (see paper source for more details).
+
+And in the two plots below, we see alcohol use and count by sex. It shows the differences between the moderate and high use of alcohol between women and men. It shows us that women on average drink more than men, but from my personal experience this is inaccurate. More drinking and heavy drinking occur among men, more long-term abstention occurs among women, and no cultural differences or historical changes have entirely erased these differences. As there are relatively few universals in human social behavior, these findings suggest that biological differences play some role in how men and women drink. However, because the gender differences vary in magnitude across cultures and across different drinking patterns, it is also very likely that gender differences in drinking behavior are modified by cultural and not just biological factors.
+```{r}
+alc <- mutate(alc, alc_use = (Dalc + Walc) / 2)
+g1 <- ggplot(data = alc, aes(x = alc_use, fill = sex))
+g1 + geom_bar()
+alc <- mutate(alc, high_use = alc_use > 2)
+g2 <- ggplot(alc, aes(high_use))
+g2 + facet_wrap("sex") + geom_bar()
+```
+
+This boxplot dives more deeply into alcohol consumption of men and women, and shows alcohol consumption of both the sexes aged from 15-22. The plot shows that females tend to be younger when they drink alcohol, but males drink consistently more from a younger age to adulthood, which is a clear contrast against the previous two plots above. Does this mean females consume more alcohol younger, but stop when they start to mature, but males keep consuming alcohol at the same rate or in a slightly more raising way?
+```{r}
+boxplot(alc$age~alc$sex, ylab="Ages 15-22", main="Alcohol consumption female and male by age")
+```
+
+## Logistic regression
+
+```{r}
+model <- glm(high_use ~ failures + absences + sex + studytime + G3, data = alc, family = "binomial")
+summary(model)
+
+model <- glm(high_use ~ failures + absences + sex + studytime, data = alc, family = "binomial")
+summary(model)
+```
+Let's calculate odds ratios and their confidence intervals.
+
+```{r, message = FALSE}
+# Odds ratios (OR)
+OR <- coef(model) %>% exp
+# Confidence intervals (CI)
+CI <- confint(model) %>% exp
+# Print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+```
+## Prediction and cross-validation
+
+```{r}
+# Predict the probability of high_use
+probabilities <- predict(model, type = "response")
+# Add the predicted probabilities to alc
+alc$probability <- probabilities
+# Use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability > 0.5)
+# Tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction)
+# Tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table %>% addmargins
+```
