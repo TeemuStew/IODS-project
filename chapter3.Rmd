@@ -3,9 +3,6 @@ title: "chapter3.Rmd"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 Importing libraries
 ```{r}
 library(dplyr); library(ggplot2)
