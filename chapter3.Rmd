@@ -1,8 +1,3 @@
----
-title: "chapter3.Rmd"
-output: html_document
----
-
 Importing libraries
 ```{r}
 library(dplyr); library(ggplot2)
