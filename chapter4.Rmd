@@ -1,0 +1,215 @@
+Importing libraries
+```{r}
+library(MASS)
+library(dplyr)
+library(ggplot2)
+```
+
+Loading Boston data
+```{r}
+data("Boston")
+```
+
+Exploring structure and dimensions of data
+```{r}
+str(Boston)
+```
+**Column meanings:**
+
+__crim:__ per capita crime rate by town.
+
+__zn:__ proportion of residential land zoned for lots over 25,000 sq.ft.
+
+__indus:__ proportion of non-retail business acres per town.
+
+__chas:__ Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+
+__nox:__ nitrogen oxides concentration (parts per 10 million).
+
+__rm:__ average number of rooms per dwelling.
+
+__age:__ proportion of owner-occupied units built prior to 1940.
+
+__dis:__ weighted mean of distances to five Boston employment centres.
+
+__rad:__ index of accessibility to radial highways.
+
+__tax:__ full-value property-tax rate per \$10,000.
+
+__ptratio:__ pupil-teacher ratio by town.
+
+__black:__ 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town.
+
+__lstat:__ lower status of the population (percent).
+
+__medv:__ median value of owner-occupied homes in \$1000s.
+```{r}
+dim(Boston) #Here we have 506 rows and 14 columns.
+```
+
+Showing a graphical overview of the data and show summaries of the variables in the data
+```{r}
+summary(Boston) 
+pairs(Boston[1:7]) #Showing the first half of the data for readability
+```
+
+In the first half of data, we see the following columns:
+
+__crim:__ per capita crime rate by town.
+
+__zn:__ proportion of residential land zoned for lots over 25,000 sq.ft.
+
+__indus:__ proportion of non-retail business acres per town.
+
+__chas:__ Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+
+__nox:__ nitrogen oxides concentration (parts per 10 million).
+
+__rm:__ average number of rooms per dwelling.
+
+__age:__ proportion of owner-occupied units built prior to 1940.
+
+
+In this graphical overview we can see the correlation of all the functions and variables found in these studies.
+
+```{r}
+summary(Boston) 
+pairs(Boston[8:14]) #Showing the second half of the data for readability
+```
+
+In the second half of data, we see the following columns:
+
+__dis:__ weighted mean of distances to five Boston employment centres.
+
+__rad:__ index of accessibility to radial highways.
+
+__tax:__ full-value property-tax rate per \$10,000.
+
+__ptratio:__ pupil-teacher ratio by town.
+
+__black:__ 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town.
+
+__lstat:__ lower status of the population (percent).
+
+__medv:__ median value of owner-occupied homes in \$1000s.
+
+
+In this graphical overview we can see the correlation of all the functions and variables found in these studies.
+
+A full view of all the data:
+```{r}
+summary(Boston) 
+pairs(Boston) #Showing all the data
+```
+
+Standardizing the dataset and printing out summaries of the scaled data.
+```{r}
+boston_scaled <- scale(Boston)
+summary(boston_scaled) 
+```
+
+Creating a categorical variable of the crime rate in the Boston dataset
+```{r}
+boston_scaled <- as.data.frame(boston_scaled)
+
+# create a quantile vector of crim and print it
+bins <- quantile(boston_scaled$crim)
+bins
+
+# create a categorical variable 'crime'
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
+
+# look at the table of the new factor crime
+table(crime)
+```
+
+Here we replace the old crime variable in the dataset
+```{r}
+# remove original crim from the dataset
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+
+# add the new categorical value to scaled data
+boston_scaled <- data.frame(boston_scaled, crime)
+
+```
+
+Dividing the dataset to train and test sets, so that 80% of the data belongs to the train set.
+```{r}
+# Randomly choose 80% of the scaled Boston rows
+ind <- sample(nrow(boston_scaled),  size = nrow(boston_scaled) * 0.8)
+
+# Create a training set
+train <- boston_scaled[ind,]
+
+# Create a test set
+test <- boston_scaled[-ind,]
+
+```
+
+## Linear discriminant analysis
+```{r}
+# linear discriminant analysis
+lda.analysis <- lda(crime ~ ., data = train)
+
+# print the lda.fit object
+lda.analysis
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "orange", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+# plot the lda results
+plot(lda.analysis, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.analysis, myscale = 1)
+```
+In this plot we see a huge gap between the high crime rates from the others.
+
+
+We shall then save the crime categories from the test set and then remove the categorical crime variable from the test dataset.
+```{r}
+#Saving
+correct_classes <- test$crime
+
+#Removing
+test <- dplyr::select(test, -crime)
+
+# Prediction
+lda_pred <- predict(lda.analysis, newdata = test)
+table(correct = correct_classes, predicted = lda_pred$class)
+```
+As we can see, the test prediction is good at predicting high crime rates and medium high rates, while medium low and low are the hardest to predict using this method.
+
+## Running k-means algorithm on the dataset
+
+Reloading the Boston dataset and standardizing the dataset 
+```{r}
+data("Boston")
+boston_reloaded <- scale(Boston)
+summary(boston_reloaded) 
+```
+
+Calculate the distances between the observations.
+```{r}
+first_dist <- dist(boston_reloaded, method = "euclidean")
+scnd_dist <- dist(boston_reloaded, method = "manhattan")
+
+summary(first_dist)
+
+summary(scnd_dist)
+
+clustering <- kmeans(boston_reloaded, centers = 2)
+pairs(boston_reloaded, col = clustering$cluster)
+```
+
+Here we ran the algorithm again and visualized the clusters where can see all the columns and variables compared to each other. The clusters are packing up in their own groups like we can see with "black", "crime", "dis", "indus", "lstat" and "nox".
+
+
