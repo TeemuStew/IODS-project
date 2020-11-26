@@ -1,8 +1,14 @@
 # Chapter 5
-
+# Loading human data
 Importing libraries
 ```{r}
-library(MASS)
-library(dplyr)
-library(ggplot2)
+library(dplyr);
+library(ggplot2);
+library(GGally);
+library(corrplot)
+library(stringr)
+```
+
+```{r, include=FALSE}
+human <- read.table("~/IODS-project/data/human_5.txt")
 ```
