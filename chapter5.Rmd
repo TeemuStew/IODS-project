@@ -1,0 +1,8 @@
+# Chapter 5
+
+Importing libraries
+```{r}
+library(MASS)
+library(dplyr)
+library(ggplot2)
+```
