@@ -1,0 +1,90 @@
+# Chapter 6
+# RATS data
+
+```{r, include=FALSE}
+RATSL <- read.table("RATSL.txt")
+BPRSL <- read.table("BPRSL.txt")
+RATS <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/rats.txt", sep = "\t", header = T)
+RATSL$ID <- as.factor(RATSL$ID)
+RATSL$Group <- as.factor(RATSL$Group)
+BPRSL$treatment <- as.factor(BPRSL$treatment)
+BPRSL$subject <- as.factor(BPRSL$subject)
+```
+
+**Importing libraries**
+```{r}
+library(dplyr)
+library(tidyr)
+library(lme4)
+library(ggplot2)
+```
+
+**Looking at data of RATS**
+```{r}
+glimpse(RATSL)
+```
+As we can see, the RATS data has 176 rows and 5 columns. If we look at the data sources, we can see that there are
+16 rats and three groups. Eight rats are in group one, four rats are in group 2, and the last four are in group 3.
+
+
+**Visualizating the data**
+```{r}
+ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(RATSL$Weight), max(RATSL$Weight)))
+```
+If we look at the plot, we can see that the rats from group 1 weight the least, but the other groups have increased weight, but we need to remember that groups two and three weighted more in the beginning of the tests.
+
+**Standardizing weights and visualizating new plot**
+```{r}
+RATSL <- RATSL %>%
+  group_by(Group) %>%
+  mutate(stdweight=scale(Weight) ) %>%
+  ungroup()
+
+glimpse(RATSL)
+```
+```{r}
+# Plot the data
+ggplot(RATSL, aes(x = Time, y = stdweight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  scale_y_continuous(name = "Standardized Weight") +
+  theme(legend.position = "none")
+```
+
+# BPRS data
+The BPRS data contains a study that has 40 subjects in two different groups with "Brief Psychiatric Rating Scale" aka BPRS.
+
+**Looking at the data:**
+```{r}
+glimpse(BPRSL)
+```
+
+**Visualizating the data**
+```{r}
+ggplot(BPRSL, aes(x = week, y = bprs, group = subject)) +
+  geom_line(aes(linetype=subject)) + facet_grid(. ~ treatment, labeller = label_both) +
+  scale_x_continuous(name= "Weeks") + scale_y_continuous(name = "BPRS") + theme(legend.position = "top") +
+  theme(legend.position = "none")
+```
+
+**Fitting the data to two models**
+```{r}
+model1 <- lmer(bprs ~ week + treatment + (weeks | subject), data = BPRSL)
+
+model2 <- lmer(bprs ~ week * treatment + (weeks | subject), data = BPRSL)
+
+summary(model1)
+summary(model2)
+```
+
+**Comparing the two fitted models**
+```{r}
+anova(model1, model2)
+```
+By looking at the models, according to anova models we can see that there is practically no significant differences between the two treatment groups.
