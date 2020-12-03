@@ -1,5 +1,5 @@
 # Chapter 6
-# RATS datas
+## RATS datas
 
 ```{r, include=FALSE}
 RATSL <- read.table("RATSL.txt")
@@ -57,7 +57,7 @@ ggplot(RATSL, aes(x = Time, y = stdweight, linetype = ID)) +
   theme(legend.position = "none")
 ```
 
-# BPRS data
+## BPRS data
 The BPRS data contains a study that has 40 subjects in two different groups with "Brief Psychiatric Rating Scale" aka BPRS.
 
 **Looking at the data:**
