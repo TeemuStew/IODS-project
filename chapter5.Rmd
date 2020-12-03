@@ -8,7 +8,3 @@ library(GGally);
 library(corrplot)
 library(stringr)
 ```
-
-```{r, include=FALSE}
-human <- read.table("~/IODS-project/data/human_5.txt")
-```
